@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gmail-automation
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gmail-automation
+  template:
+    metadata:
+      labels:
+        app: gmail-automation
+    spec:
+      containers:
+      - name: backend
+        image: yourrepo/gmail-automation-backend:latest
+        ports:
+        - containerPort: 4000
+        envFrom:
+        - secretRef:
+            name: gmail-automation-secrets

@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      - PORT=4000
+      - MONGO_URI=mongodb://mongo:27017/gmail-automation
+      - JWT_SECRET=changeme
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - OAUTH_REDIRECT_URI=http://localhost:4000/api/auth/google/callback
+      - FRONTEND_URL=http://localhost:3000
+      - ENCRYPTION_KEY=01234567890123456789012345678901
+      - CRON_SCHEDULE=*/1 * * * *
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      - REACT_APP_API_URL=http://localhost:4000/api
+    ports:
+      - "3000:3000"
+
+volumes:
+  mongo-data:
