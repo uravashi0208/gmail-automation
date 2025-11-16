@@ -23,7 +23,7 @@ pids/
 *.pid.lock
 
 # Build outputs
-dist/
+# dist/
 build/
 out/
 coverage/
