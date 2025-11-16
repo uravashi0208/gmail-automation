@@ -24,20 +24,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        '@ant-design/icons': path.resolve(__dirname, 'node_modules/@ant-design/icons'),
-        'api': path.resolve(__dirname, 'src/api'),
-        'assets': path.resolve(__dirname, 'src/assets'),
-        'components': path.resolve(__dirname, 'src/components'),
-        'config': path.resolve(__dirname, 'src/config'),
-        'contexts': path.resolve(__dirname, 'src/contexts'),
-        'hooks': path.resolve(__dirname, 'src/hooks'),
-        'layout': path.resolve(__dirname, 'src/layout'),
-        'menu-items': path.resolve(__dirname, 'src/menu-items'),
-        'pages': path.resolve(__dirname, 'src/pages'),
-        'routes': path.resolve(__dirname, 'src/routes'),
-        'sections': path.resolve(__dirname, 'src/sections'),
-        'themes': path.resolve(__dirname, 'src/themes'),
-        'utils': path.resolve(__dirname, 'src/utils')
+        '@ant-design/icons': path.resolve(__dirname, 'node_modules/@ant-design/icons')
         // Add more aliases as needed
       }
     },
