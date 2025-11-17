@@ -6,7 +6,7 @@ const rulesRoutes = require('./routes/rules');
 const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
-app.use(cors({ origin: ["http://localhost:5173", "http://localhost:3000"], credentials: true }));
+app.use(cors({ origin: ["http://localhost:5173", "http://localhost:3000","https://gmail-automation-backend-nvxi.onrender.com"], credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
