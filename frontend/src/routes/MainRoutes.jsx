@@ -6,7 +6,7 @@ import ProtectedRoute from '../utils/ProtectedRoute';
 
 // pages
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
-const LogsDefault = Loadable(lazy(() => import('pages/logs/default')));
+const LogsDefault = Loadable(lazy(() => import('pages/maillogs/default')));
 
 const MainRoutes = {
   path: '/',
