@@ -14,6 +14,8 @@ export default function NavGroup({ item }) {
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
 
+  if (item.title == 'Authentication') return null;
+
   const navCollapse = item.children?.map((menuItem) => {
     switch (menuItem.type) {
       case 'collapse':

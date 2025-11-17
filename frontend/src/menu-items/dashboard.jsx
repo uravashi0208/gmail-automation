@@ -19,7 +19,8 @@ const dashboard = {
       type: 'item',
       url: '/dashboard',
       icon: icons.DashboardOutlined,
-      breadcrumbs: false
+      breadcrumbs: false,
+      hidden: false
     },
     {
       id: 'maillogs',
@@ -27,7 +28,8 @@ const dashboard = {
       type: 'item',
       url: '/maillogs',
       icon: icons.DashboardOutlined,
-      breadcrumbs: false
+      breadcrumbs: false,
+      hidden: false
     }
   ]
 };

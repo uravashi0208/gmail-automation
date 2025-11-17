@@ -28,7 +28,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
   if (item.target) {
     itemTarget = '_blank';
   }
-
+if (item.hidden) return null;
   const itemHandler = () => {
     if (downLG) handlerDrawerOpen(false);
 
