@@ -1,45 +1,45 @@
-import PropTypes from 'prop-types';
+import { useState } from 'react';
 
 // material-ui
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-
-import AnimateButton from 'components/@extended/AnimateButton';
-
-import { getAuthUrl } from '../../api';
-import { useState } from 'react';
 import Typography from '@mui/material/Typography';
-// ============================|| JWT - LOGIN ||============================ //
+
+// project imports
+import AnimateButton from 'components/@extended/AnimateButton';
+import { getAuthUrl } from '../../api';
+
+// ============================|| GMAIL - LOGIN ||============================ //
 
 export default function AuthLogin() {
-
-
   const [loading, setLoading] = useState(false);
 
   const startOAuth = async () => {
     setLoading(true);
-    const res = await getAuthUrl();
-    window.location.href = res.data.url;
+    try {
+      const res = await getAuthUrl();
+      window.location.href = res.data.url;
+    } catch (err) {
+      console.error('Failed to get auth URL:', err);
+      setLoading(false);
+    }
   };
+
   return (
-    <>
-      <form noValidate>
-        <Grid container spacing={3}>
-          <Typography variant="h3">Gmail Automation</Typography>
-          <Typography variant="body1" gutterBottom>
-            After approval you will be redirected back to the app.
-          </Typography>
-          <Grid size={12}>
-            <AnimateButton>
-              <Button fullWidth size="large" variant="contained" color="primary" onClick={startOAuth} disabled={loading}>
-                Login with Google
-              </Button>
-            </AnimateButton>
-          </Grid>
-        </Grid>
-      </form>
-    </>
+    <Grid container spacing={3}>
+      <Grid size={12}>
+        <Typography variant="h3">Gmail Automation</Typography>
+        <Typography variant="body1" gutterBottom sx={{ mt: 1 }}>
+          Sign in with your Google account to get started. You will be redirected back after approval.
+        </Typography>
+      </Grid>
+      <Grid size={12}>
+        <AnimateButton>
+          <Button fullWidth size="large" variant="contained" color="primary" onClick={startOAuth} disabled={loading}>
+            {loading ? 'Redirecting…' : 'Login with Google'}
+          </Button>
+        </AnimateButton>
+      </Grid>
+    </Grid>
   );
 }
-
-AuthLogin.propTypes = { isDemo: PropTypes.bool };

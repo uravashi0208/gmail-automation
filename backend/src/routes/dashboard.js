@@ -1,24 +1,14 @@
-const express = require('express');
-const router = express.Router();
-const dashboardCtrl = require('../controllers/dashboardController');
-const jwt = require('jsonwebtoken');
+'use strict';
 
-function authMiddleware(req, res, next) {
-  const header = req.headers.authorization;
-  if (!header) return res.status(401).send('Unauthorized');
-  try {
-    const token = header.split(' ')[1];
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = payload.userId;
-    next();
-  } catch (e) {
-    res.status(401).send('Unauthorized');
-  }
-}
+const { Router } = require('express');
+const { authMiddleware } = require('../middleware/auth');
+const dashboardController = require('../controllers/dashboardController');
+
+const router = Router();
 
 router.use(authMiddleware);
 
-router.get('/logs', dashboardCtrl.getLogs);
-router.get('/stats', dashboardCtrl.getStats);
+router.get('/logs', dashboardController.getLogs);
+router.get('/stats', dashboardController.getStats);
 
 module.exports = router;

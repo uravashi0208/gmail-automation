@@ -1,211 +1,98 @@
-📧 Gmail Automation Tool
+# Gmail Automation
 
-Automate Gmail tasks such as labeling, filtering, and sending auto-replies based on customizable rules.
+A full-stack Gmail automation app. Authenticate via Google OAuth, define rules (label, archive, auto-reply, forward), and let the scheduler process your inbox on a cron schedule.
 
-This project includes:
-✔ Backend (Node.js + Express + MongoDB)
-✔ Frontend (React + Vite)
-✔ Google OAuth2 Login
-✔ Gmail API Automation
-✔ Rule-Based Email Processing Engine
-✔ AES-256 Encryption for Gmail Tokens
+## Structure
 
-🚀 Features
+```
+/
+├── backend/   Node.js + Express + MongoDB API
+└── frontend/  React + Vite + MUI dashboard
+```
 
-Login using Google OAuth2
+---
 
-Create rules:
+## Backend
 
-Match subject keywords
+### Setup
 
-Match sender email
-
-Apply Gmail labels
-
-Send auto-reply templates
-
-Background scheduler for continuous email processing
-
-Logs for every automation action
-
-Secure token encryption
-
-📂 Project Structure
-/gmail-automation
-  /backend
-    src/
-      controllers/
-      models/
-      routes/
-      utils/
-      index.js
-      app.js
-    .env
-  
-  /frontend
-    src/
-    index.html
-    .env
-
-🛠️ Backend Setup (Node.js)
-1. Install Dependencies
+```bash
 cd backend
+cp .env.example .env   # fill in your values
 npm install
+npm run dev            # nodemon + hot reload
+```
 
-2. Create .env File (backend)
+### Environment variables
 
-Create a .env file inside the backend folder:
+| Variable | Description |
+|---|---|
+| `MONGO_URI` | MongoDB connection string |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `OAUTH_REDIRECT_URI` | Must match Google Console — e.g. `http://localhost:4000/api/auth/google/callback` |
+| `JWT_SECRET` | Random secret for signing JWTs (min 32 chars) |
+| `ENCRYPTION_SECRET` | 64 hex chars (32 bytes) for AES-256 token encryption |
+| `FRONTEND_URL` | Frontend origin for OAuth redirect — e.g. `http://localhost:5173` |
+| `CORS_ORIGINS` | Comma-separated allowed origins |
+| `CRON_SCHEDULE` | Cron expression (default `*/1 * * * *`) |
+| `PORT` | Server port (default `4000`) |
 
-PORT=4000
-MONGO_URI=mongodb://127.0.0.1:27017/gmail-automation
+### API routes
 
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-OAUTH_REDIRECT_URI=http://localhost:4000/api/auth/google/callback
+```
+GET  /api/auth/google/url       → returns Google OAuth URL
+GET  /api/auth/google/callback  → OAuth callback, redirects to frontend with JWT
+GET  /api/auth/me               → returns current user (Bearer token required)
 
-JWT_SECRET=your_jwt_secret
+GET    /api/rules               → list rules
+POST   /api/rules               → create rule
+PUT    /api/rules/:id           → update rule
+DELETE /api/rules/:id           → delete rule
 
-ENCRYPTION_SECRET=32_byte_hex_key_here
-FRONTEND_URL=http://localhost:3000
+GET  /api/dashboard/logs        → last 200 email processing logs
+GET  /api/dashboard/stats       → total + success counts
+```
 
-Generate a valid 32-byte encryption key:
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+### Tests
 
+```bash
+npm test
+```
 
-Paste this into:
-ENCRYPTION_SECRET=your_generated_key
+---
 
-3. Start Backend Server
-npm run start
+## Frontend
 
+### Setup
 
-Expected output:
-
-Connected to MongoDB
-Server listening on port 4000
-
-🌐 Google OAuth Setup
-
-Go to Google Cloud Console:
-https://console.cloud.google.com/apis/credentials
-
-✔ Step 1 — Create OAuth Client (Web Application)
-
-Authorized JavaScript origins:
-
-http://localhost:3000
-
-
-Authorized redirect URIs:
-
-http://localhost:4000/api/auth/google/callback
-
-✔ Step 2 — Add Test Users (Important!)
-
-Because your app is unverified, only test users can log in.
-
-Go to:
-
-OAuth Consent Screen → Test Users
-Add:
-
-the Google account you will use for login
-
-any other developer accounts
-
-🎨 Frontend Setup (React/Vite)
-1. Install Dependencies
+```bash
 cd frontend
+cp .env.example .env   # set VITE_API_URL
 npm install
+npm run start
+```
 
-2. Create .env File (frontend)
-VITE_BACKEND_URL=http://localhost:4000
+### Environment variables
 
-3. Start Frontend
-npm run dev
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Backend API base URL (default `http://localhost:4000/api`) |
+| `VITE_APP_BASE_NAME` | Router base path (leave blank for `/`) |
 
+---
 
-Open the app:
-👉 http://localhost:3000
+## Key fixes applied during refactor
 
-🔐 Logging In
-
-Click Login with Google.
-
-If Google shows "App not verified":
-
-Advanced → Go to Gmail Automation Tool (unsafe)
-
-
-After login, you should be redirected to:
-
-http://localhost:5173/?token=<JWT_TOKEN>
-
-📬 Testing the Automation Engine
-✔ Step 1 — Create a Rule
-
-Example:
-
-Name: Invoice Rule
-
-Subject Contains: invoice
-
-Label: Finance
-
-Auto Reply: (optional template)
-
-Click Save.
-
-✔ Step 2 — Send Test Email
-
-Send from any email account to the Google account you logged in with.
-
-Example:
-
-To: your_logged_in_account@gmail.com
-Subject: invoice test
-Body: This is a test email
-
-✔ Step 3 — Wait for Automation Engine
-
-The backend scheduler runs every 1 minute.
-
-You should see logs like:
-
-Processing email <messageId> matched rule <ruleId>
-Label applied: Finance
-
-✔ Step 4 — Check Gmail
-
-Open Gmail inbox →
-You should see the email labeled automatically.
-
-If auto-reply is enabled → sender receives a reply.
-
-🛡️ Security Notes
-
-AES-256 is used for encrypting Gmail OAuth tokens
-
-.env files must never be pushed to GitHub
-
-JWT secrets should be long and random
-
-❗ Common Issues & Fixes
-1. “redirect_uri_mismatch”
-
-Fix: Ensure redirect URI matches exactly:
-
-http://localhost:4000/api/auth/google/callback
-
-2. “Invalid key length”
-
-Your encryption key must be exactly 32 bytes (64 hex characters).
-
-Generate again:
-
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-
-3. “App not verified” Warning
-
-This happens because your app is not Google-verified.
-Solution: Add your email under Test Users in Google Console.
+| # | File | Bug |
+|---|---|---|
+| 1 | `backend/src/utils/crypto.js` | Used ESM `import`/`export` in a CommonJS project — caused immediate runtime crash |
+| 2 | `frontend/src/pages/maillogs/default.jsx` | Called `.toLowerCase()` on a `Boolean` field (`success`) — TypeError at runtime |
+| 3 | `backend/src/middleware/auth.js` | `authMiddleware` was duplicated in `rules.js` and `dashboard.js` — extracted to shared module |
+| 4 | `backend/src/controllers/*.js` | All controller handlers had zero `try/catch` — unhandled promise rejections on any DB error |
+| 5 | `frontend/src/api.js` | JWT was passed manually to every API function — replaced with an axios request interceptor |
+| 6 | `frontend/src/App.jsx` | `user` state was fetched and stored but never passed anywhere (orphaned) — removed |
+| 7 | `frontend/src/pages/dashboard/default.jsx` | `useState` imported but never used |
+| 8 | `frontend/src/sections/dashboard/default/OrdersTable.jsx` | `token` in `PropTypes` declared as required but sourced internally from localStorage |
+| 9 | `backend/src/controllers/authController.js` | `require('dotenv').config()` called in controller — should only run once in the entry point |
+| 10 | `backend/src/routes/auth.js` | `googleapis` imported but never used in the route file |

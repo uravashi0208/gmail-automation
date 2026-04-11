@@ -1,44 +1,39 @@
-import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 
 // material-ui
+import Box from '@mui/material/Box';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-
-import Box from '@mui/material/Box';
-import MainCard from '../../components/MainCard';
-import { Grid } from '@mui/system';
 import Typography from '@mui/material/Typography';
+import { Grid } from '@mui/system';
 
-import Pagination from '@mui/material/Pagination';   // ⭐ NEW
-import StackMui from '@mui/material/Stack';          // ⭐ NEW
+// project imports
+import MainCard from 'components/MainCard';
+import { getLogs } from '../../api';
 
-// form
-import OutlinedInput from '@mui/material/OutlinedInput';
-
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-
-// api
-import { getLogs, listRules } from '../../api';
+const ROWS_PER_PAGE = 10;
 
 const headCells = [
   { id: 'timestamp', align: 'left', label: 'Time' },
   { id: 'subject', align: 'left', label: 'Subject' },
   { id: 'actionTaken', align: 'left', label: 'Action' },
-  { id: 'success', align: 'left', label: 'Success' },
+  { id: 'success', align: 'center', label: 'Success' }
 ];
 
-function OrderTableHead() {
+function LogsTableHead() {
   return (
     <TableHead>
       <TableRow>
-        {headCells.map((headCell) => (
-          <TableCell key={headCell.id} align={headCell.align}>
-            {headCell.label}
+        {headCells.map((cell) => (
+          <TableCell key={cell.id} align={cell.align}>
+            {cell.label}
           </TableCell>
         ))}
       </TableRow>
@@ -46,66 +41,48 @@ function OrderTableHead() {
   );
 }
 
-// project imports
-
-// ==============================|| Logs - DEFAULT ||============================== //
+// ==============================|| MAIL LOGS PAGE ||============================== //
 
 export default function LogsDefault() {
-
-  const [token, setToken] = useState(() => {
-    const param = new URLSearchParams(window.location.search).get('token');
-    return param || localStorage.getItem('jwt');
-  });
-
   const [maillogs, setMailLogs] = useState([]);
-
-  // NEW STATES
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
-    if (token) fetchRules();
-  }, [token]);
+    fetchLogs();
+  }, []);
 
-  const fetchRules = async () => {
+  const fetchLogs = async () => {
     try {
-      const res = await getLogs(token);
+      const res = await getLogs();
       setMailLogs(res.data || []);
     } catch (err) {
-      console.error('Failed to fetch maillogs', err);
+      console.error('Failed to fetch mail logs:', err);
       setMailLogs([]);
     }
   };
 
-
-  // ⭐ FILTER LOGIC
-  const filteredRules = maillogs.filter((r) => {
+  // FIX: r.success is a Boolean — compare as string only on string fields
+  const filteredLogs = maillogs.filter((r) => {
     const s = search.toLowerCase();
     return (
       r.subject?.toLowerCase().includes(s) ||
-      r.actionTaken?.toLowerCase().includes(s) ||
-      r.success?.toLowerCase().includes(s)
+      r.actionTaken?.toLowerCase().includes(s)
     );
   });
 
-  // ⭐ PAGINATION LOGIC
-  const paginatedRules = filteredRules.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  const paginatedLogs = filteredLogs.slice(page * ROWS_PER_PAGE, page * ROWS_PER_PAGE + ROWS_PER_PAGE);
+  const pageCount = Math.ceil(filteredLogs.length / ROWS_PER_PAGE);
 
-return (
+  return (
     <>
-      {/* LEFT SIDE - Table */}
       <Grid size={{ xs: 12, md: 7, lg: 8 }}>
-        <Typography variant="h5">List of Rules</Typography>
+        <Typography variant="h5">Mail Logs</Typography>
 
-        {/* ⭐ Search input (Right-Aligned) */}
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
           <OutlinedInput
             sx={{ width: 300 }}
-            placeholder="Search..."
+            placeholder="Search subject or action…"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -127,52 +104,48 @@ return (
               }}
             >
               <Table>
-                <OrderTableHead />
+                <LogsTableHead />
                 <TableBody>
-                  {paginatedRules.length === 0 ? (
+                  {paginatedLogs.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={headCells.length} align="center">
-                        No data found
+                        No logs found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedRules.map((r) => (
+                    paginatedLogs.map((r) => (
                       <TableRow key={r._id} hover>
                         <TableCell>{new Date(r.timestamp).toLocaleString()}</TableCell>
-                        <TableCell align="left">{r.subject || '-'}</TableCell>
-                        <TableCell align="left">{r.actionTaken || '-'}</TableCell>
-                        <TableCell align="left">{r.success ? '✅' : '❌' || '-'}</TableCell>
+                        <TableCell>{r.subject || '-'}</TableCell>
+                        <TableCell>{r.actionTaken || '-'}</TableCell>
+                        <TableCell align="center">{r.success ? '✅' : '❌'}</TableCell>
                       </TableRow>
                     ))
                   )}
                 </TableBody>
               </Table>
 
-              {/* ⭐ CUSTOM PAGINATION (matches your screenshot) */}
-              <StackMui spacing={2} alignItems="center" sx={{ py: 2 }}>
-                <Pagination
-                  count={Math.ceil(filteredRules.length / rowsPerPage)}   // total pages
-                  page={page + 1}                                        // convert to 1-index
-                  onChange={(e, value) => setPage(value - 1)}            // convert back to 0-index
-                  shape="rounded"
-                  variant="outlined"
-                  siblingCount={2}
-                  boundaryCount={1}
-                  sx={{
-                    '& .MuiPaginationItem-root': {
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      minWidth: '36px',
-                      height: '36px',
-                    },
-                    '& .Mui-selected': {
-                      backgroundColor: 'black !important',
-                      color: 'white !important',
-                      border: '1px solid black',
-                    }
-                  }}
-                />
-              </StackMui>
+              {pageCount > 1 && (
+                <Stack spacing={2} alignItems="center" sx={{ py: 2 }}>
+                  <Pagination
+                    count={pageCount}
+                    page={page + 1}
+                    onChange={(_e, value) => setPage(value - 1)}
+                    shape="rounded"
+                    variant="outlined"
+                    siblingCount={2}
+                    boundaryCount={1}
+                    sx={{
+                      '& .MuiPaginationItem-root': { borderRadius: '8px', fontSize: 14, minWidth: 36, height: 36 },
+                      '& .Mui-selected': {
+                        backgroundColor: 'black !important',
+                        color: 'white !important',
+                        border: '1px solid black'
+                      }
+                    }}
+                  />
+                </Stack>
+              )}
             </TableContainer>
           </Box>
         </MainCard>

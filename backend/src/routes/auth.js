@@ -1,10 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const { google } = require('googleapis');
+'use strict';
+
+const { Router } = require('express');
 const authController = require('../controllers/authController');
+
+const router = Router();
 
 router.get('/google/url', authController.getAuthUrl);
 router.get('/google/callback', authController.googleCallback);
-router.get('/me', authController.getCurrentUser); // simple route to fetch user info by token
+router.get('/me', authController.getCurrentUser);
 
 module.exports = router;

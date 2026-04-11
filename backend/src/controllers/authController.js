@@ -1,16 +1,15 @@
-require('dotenv').config();
+'use strict';
+
 const { google } = require('googleapis');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { encrypt } = require('../utils/crypto');
-const jwt = require('jsonwebtoken');
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
   process.env.OAUTH_REDIRECT_URI
 );
-
-
 
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
@@ -21,7 +20,7 @@ const SCOPES = [
   'openid'
 ];
 
-exports.getAuthUrl = (req, res) => {
+exports.getAuthUrl = (_req, res) => {
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
@@ -31,49 +30,44 @@ exports.getAuthUrl = (req, res) => {
 };
 
 exports.googleCallback = async (req, res) => {
-  const code = req.query.code;
-  
-  if (!code) return res.status(400).send('Missing code');
+  const { code } = req.query;
+  if (!code) return res.status(400).json({ error: 'Missing OAuth code' });
+
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
-    // fetch basic profile
     const oauth2 = google.oauth2({ auth: oauth2Client, version: 'v2' });
-    const userinfo = await oauth2.userinfo.get();
-    const { id: googleId, email, name } = userinfo.data;
+    const { data: userinfo } = await oauth2.userinfo.get();
+    const { id: googleId, email, name } = userinfo;
 
-    // persist user (encrypt tokens)
-    const tokenEnc = encrypt(tokens);
+    const tokensEncrypted = encrypt(tokens);
 
-    let user = await User.findOneAndUpdate(
+    const user = await User.findOneAndUpdate(
       { googleId },
-      { googleId, email, name, tokensEncrypted: tokenEnc },
+      { googleId, email, name, tokensEncrypted },
       { upsert: true, new: true }
     );
 
-    // create JWT for frontend
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    // redirect to frontend with token
-    const redirectUrl = `${process.env.FRONTEND_URL}/?token=${token}`;
-    res.redirect(redirectUrl);
+    res.redirect(`${process.env.FRONTEND_URL}/?token=${token}`);
   } catch (err) {
-    console.error('Google callback error', err);
-    res.status(500).send('Auth failed');
+    console.error('Google callback error:', err);
+    res.status(500).json({ error: 'Authentication failed' });
   }
 };
 
 exports.getCurrentUser = async (req, res) => {
-  // token in Authorization: Bearer <jwt>
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).send('Missing auth');
-  const token = auth.split(' ')[1];
+  const header = req.headers.authorization;
+  if (!header) return res.status(401).json({ error: 'Missing Authorization header' });
+
+  const token = header.split(' ')[1];
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(payload.userId).select('-tokensEncrypted');
+    if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ user });
-  } catch (err) {
-    res.status(401).send('Invalid token');
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
   }
 };

@@ -1,19 +1,13 @@
 {
-  "name": "react-template",
-  "version": "4.0.0",
-  "homepage": "https://reactdashboard.com",
-  "author": {
-    "name": "CodedThemes",
-    "email": "codedthemes@gmail.com",
-    "url": "https://codedthemes.com/"
-  },
+  "name": "gmail-automation-frontend",
+  "version": "1.0.0",
   "scripts": {
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
-    "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
-    "prettier": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\""
+    "lint": "eslint \"src/**/*.{js,jsx}\"",
+    "lint:fix": "eslint --fix \"src/**/*.{js,jsx}\"",
+    "prettier": "prettier --write \"src/**/*.{js,jsx}\""
   },
   "dependencies": {
     "@ant-design/colors": "7.2.1",
@@ -45,24 +39,6 @@
     "web-vitals": "5.1.0",
     "yup": "1.7.1"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
   "devDependencies": {
     "@eslint/compat": "1.4.0",
     "@eslint/eslintrc": "3.3.1",
@@ -73,6 +49,10 @@
     "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.0.0",
-    "prettier": "3.6.2"
+    "prettier": "3.4.2"
+  },
+  "browserslist": {
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
   }
 }

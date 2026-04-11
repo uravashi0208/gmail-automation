@@ -1,21 +1,10 @@
-const express = require('express');
-const router = express.Router();
+'use strict';
+
+const { Router } = require('express');
+const { authMiddleware } = require('../middleware/auth');
 const rulesController = require('../controllers/rulesController');
 
-// basic token middleware for demo
-const jwt = require('jsonwebtoken');
-function authMiddleware(req, res, next) {
-  const header = req.headers.authorization;
-  if (!header) return res.status(401).send('Unauthorized');
-  try {
-    const token = header.split(' ')[1];
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = payload.userId;
-    next();
-  } catch (e) {
-    res.status(401).send('Unauthorized');
-  }
-}
+const router = Router();
 
 router.use(authMiddleware);
 

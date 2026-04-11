@@ -1,31 +1,25 @@
+import { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 
-// project imports
 import router from 'routes';
 import ThemeCustomization from 'themes';
-
 import ScrollTop from 'components/ScrollTop';
-import { useEffect, useState } from 'react';
-import { currentUser } from './api';
 
 // ==============================|| APP - THEME, ROUTER, LOCAL ||============================== //
 
 export default function App() {
-
-  const [token, setToken] = useState(() => {
-    const param = new URLSearchParams(window.location.search).get('token');
-    return param || localStorage.getItem('jwt');
-  });
-  const [user, setUser] = useState(null);
-
   useEffect(() => {
-    if (token) {
-      localStorage.setItem('jwt', token);
-      currentUser(token).then(res => setUser(res.data.user)).catch(() => {
-        localStorage.removeItem('jwt'); setToken(null);
-      });
+    // On load, capture token from OAuth redirect query param and persist it
+    const param = new URLSearchParams(window.location.search).get('token');
+    if (param) {
+      localStorage.setItem('jwt', param);
+      // Clean the URL without a full page reload
+      const url = new URL(window.location.href);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, '', url.toString());
     }
-  }, [token]);
+  }, []);
+
   return (
     <ThemeCustomization>
       <ScrollTop>
