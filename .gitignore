@@ -48,3 +48,9 @@ Dockerfile*
 
 # Linux
 *~
+# Tar archives
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tgz
