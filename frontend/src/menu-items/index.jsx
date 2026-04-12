@@ -1,11 +1,8 @@
-// project import
-import dashboard from './dashboard';
+import dashboard, { intelligenceMenu } from './dashboard';
 import pages from './page';
 
-// ==============================|| MENU ITEMS ||============================== //
-
 const menuItems = {
-  items: [dashboard, pages]
+  items: [dashboard, intelligenceMenu, pages]
 };
 
 export default menuItems;
