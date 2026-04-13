@@ -11,29 +11,49 @@ import { WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
 
 export default function Conflicts() {
   const [conflicts, setConflicts] = useState([]);
-  const [rules, setRules]         = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [rules, setRules] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([getConflicts(), listRules()])
-      .then(([c, r]) => { setConflicts(c.data.conflicts || []); setRules(r.data || []); })
+      .then(([c, r]) => {
+        setConflicts(c.data.conflicts || []);
+        setRules(r.data || []);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
   // build adjacency for visual
-  const getRule = id => rules.find(r => String(r._id) === String(id));
+  const getRule = (id) => rules.find((r) => String(r._id) === String(id));
 
   return (
     <Grid container rowSpacing={3} columnSpacing={2.75}>
       <Grid size={12}>
-        <Typography variant="h5">Rule Conflict Visualizer</Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            display: 'inline-block',
+            backgroundColor: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)'
+          }}
+        >
+          Rule Conflict Visualizer
+        </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           Rules that may match the same emails — review and adjust conditions to avoid double-actions.
         </Typography>
       </Grid>
 
-      {loading && <Grid size={12}><Typography>Analyzing rules…</Typography></Grid>}
+      {loading && (
+        <Grid size={12}>
+          <Typography>Analyzing rules…</Typography>
+        </Grid>
+      )}
 
       {!loading && conflicts.length === 0 && (
         <Grid size={12}>
@@ -51,7 +71,9 @@ export default function Conflicts() {
             <MainCard>
               <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 2 }}>
                 <WarningOutlined style={{ color: '#fa8c16', fontSize: 18 }} />
-                <Typography variant="subtitle1" fontWeight={600}>Conflict #{i + 1}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Conflict #{i + 1}
+                </Typography>
               </Stack>
 
               <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -60,30 +82,41 @@ export default function Conflicts() {
                   <Typography variant="subtitle2">{r1.name || c.rule1.name}</Typography>
                   {r1.conditions && (
                     <Box sx={{ mt: 1 }}>
-                      {r1.conditions.subjectContains && <Chip label={`subject: ${r1.conditions.subjectContains}`} size="small" sx={{ mr: 0.5, mb: 0.5 }} />}
+                      {r1.conditions.subjectContains && (
+                        <Chip label={`subject: ${r1.conditions.subjectContains}`} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
+                      )}
                       {r1.conditions.from && <Chip label={`from: ${r1.conditions.from}`} size="small" sx={{ mr: 0.5, mb: 0.5 }} />}
-                      {r1.conditions.intentTrigger && <Chip label={`intent: ${r1.conditions.intentTrigger}`} size="small" color="primary" sx={{ mb: 0.5 }} />}
+                      {r1.conditions.intentTrigger && (
+                        <Chip label={`intent: ${r1.conditions.intentTrigger}`} size="small" color="primary" sx={{ mb: 0.5 }} />
+                      )}
                     </Box>
                   )}
                 </Box>
 
-                <Typography variant="h6" color="warning.main">⇄</Typography>
+                <Typography variant="h6" color="warning.main">
+                  ⇄
+                </Typography>
 
                 {/* Rule 2 */}
                 <Box sx={{ flex: 1, minWidth: 140, p: 1.5, border: '1px solid', borderColor: 'warning.light', borderRadius: 2 }}>
                   <Typography variant="subtitle2">{r2.name || c.rule2.name}</Typography>
                   {r2.conditions && (
                     <Box sx={{ mt: 1 }}>
-                      {r2.conditions.subjectContains && <Chip label={`subject: ${r2.conditions.subjectContains}`} size="small" sx={{ mr: 0.5, mb: 0.5 }} />}
+                      {r2.conditions.subjectContains && (
+                        <Chip label={`subject: ${r2.conditions.subjectContains}`} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
+                      )}
                       {r2.conditions.from && <Chip label={`from: ${r2.conditions.from}`} size="small" sx={{ mr: 0.5, mb: 0.5 }} />}
-                      {r2.conditions.intentTrigger && <Chip label={`intent: ${r2.conditions.intentTrigger}`} size="small" color="primary" sx={{ mb: 0.5 }} />}
+                      {r2.conditions.intentTrigger && (
+                        <Chip label={`intent: ${r2.conditions.intentTrigger}`} size="small" color="primary" sx={{ mb: 0.5 }} />
+                      )}
                     </Box>
                   )}
                 </Box>
               </Box>
 
               <Alert severity="warning" sx={{ mt: 2 }}>
-                These rules may both trigger on the same email. Tighten the conditions (add a specific sender or subject) to avoid conflicts.
+                These rules may both trigger on the same email. Tighten the conditions (add a specific sender or subject) to avoid
+                conflicts.
               </Alert>
             </MainCard>
           </Grid>

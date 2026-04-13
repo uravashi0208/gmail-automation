@@ -15,13 +15,13 @@ import { BulbOutlined, PlusOutlined, CheckOutlined } from '@ant-design/icons';
 
 export default function Suggestions() {
   const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [applied, setApplied]         = useState({});
-  const [error, setError]             = useState('');
+  const [loading, setLoading] = useState(true);
+  const [applied, setApplied] = useState({});
+  const [error, setError] = useState('');
 
   useEffect(() => {
     getSuggestedRules()
-      .then(r => setSuggestions(r.data.suggestions || []))
+      .then((r) => setSuggestions(r.data.suggestions || []))
       .catch(() => setError('Could not fetch suggestions. Make sure ANTHROPIC_API_KEY is set on the backend.'))
       .finally(() => setLoading(false));
   }, []);
@@ -29,11 +29,11 @@ export default function Suggestions() {
   const applyRule = async (s, idx) => {
     try {
       await createRule({
-        name:       s.name,
+        name: s.name,
         conditions: s.conditions,
-        actions:    s.actions
+        actions: s.actions
       });
-      setApplied(prev => ({ ...prev, [idx]: true }));
+      setApplied((prev) => ({ ...prev, [idx]: true }));
     } catch (err) {
       console.error('Failed to apply suggestion:', err);
     }
@@ -44,7 +44,20 @@ export default function Suggestions() {
       <Grid size={12}>
         <Stack direction="row" alignItems="center" gap={1}>
           <BulbOutlined style={{ fontSize: 22, color: '#fa8c16' }} />
-          <Typography variant="h5">Behavioral Pattern Rule Suggester</Typography>
+          <Typography
+            variant="h5"
+            sx={{
+              px: 2,
+              py: 1,
+              borderRadius: 2,
+              display: 'inline-block',
+              backgroundColor: 'rgba(255,255,255,0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)'
+            }}
+          >
+            Behavioral Pattern Rule Suggester
+          </Typography>
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           AI analyzes your past email patterns and suggests rules you never thought to create.
@@ -61,14 +74,14 @@ export default function Suggestions() {
       )}
 
       {error && (
-        <Grid size={12}><Alert severity="error">{error}</Alert></Grid>
+        <Grid size={12}>
+          <Alert severity="error">{error}</Alert>
+        </Grid>
       )}
 
       {!loading && !error && suggestions.length === 0 && (
         <Grid size={12}>
-          <Alert severity="info">
-            Not enough email history yet. Process at least 10–20 emails first and try again.
-          </Alert>
+          <Alert severity="info">Not enough email history yet. Process at least 10–20 emails first and try again.</Alert>
         </Grid>
       )}
 
@@ -86,16 +99,18 @@ export default function Suggestions() {
 
             <Divider sx={{ mb: 2 }} />
 
-            <Typography variant="caption" color="text.secondary" fontWeight={600}>CONDITIONS</Typography>
+            <Typography variant="caption" color="text.secondary" fontWeight={600}>
+              CONDITIONS
+            </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5, mb: 2 }}>
               {s.conditions?.from && <Chip label={`from: ${s.conditions.from}`} size="small" />}
               {s.conditions?.subjectContains && <Chip label={`subject: ${s.conditions.subjectContains}`} size="small" />}
-              {s.conditions?.intentTrigger && (
-                <Chip label={`intent: ${s.conditions.intentTrigger}`} size="small" color="primary" />
-              )}
+              {s.conditions?.intentTrigger && <Chip label={`intent: ${s.conditions.intentTrigger}`} size="small" color="primary" />}
             </Box>
 
-            <Typography variant="caption" color="text.secondary" fontWeight={600}>ACTIONS</Typography>
+            <Typography variant="caption" color="text.secondary" fontWeight={600}>
+              ACTIONS
+            </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5, mb: 2 }}>
               {s.actions?.label && <Chip label={`label: ${s.actions.label}`} size="small" color="success" />}
               {s.actions?.archive && <Chip label="archive" size="small" color="warning" />}

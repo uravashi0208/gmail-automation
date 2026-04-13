@@ -65,10 +65,7 @@ export default function LogsDefault() {
   // FIX: r.success is a Boolean — compare as string only on string fields
   const filteredLogs = maillogs.filter((r) => {
     const s = search.toLowerCase();
-    return (
-      r.subject?.toLowerCase().includes(s) ||
-      r.actionTaken?.toLowerCase().includes(s)
-    );
+    return r.subject?.toLowerCase().includes(s) || r.actionTaken?.toLowerCase().includes(s);
   });
 
   const paginatedLogs = filteredLogs.slice(page * ROWS_PER_PAGE, page * ROWS_PER_PAGE + ROWS_PER_PAGE);
@@ -77,7 +74,20 @@ export default function LogsDefault() {
   return (
     <>
       <Grid size={{ xs: 12, md: 7, lg: 8 }}>
-        <Typography variant="h5">Mail Logs</Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            display: 'inline-block',
+            backgroundColor: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)'
+          }}
+        >
+          Mail Logs
+        </Typography>
 
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
           <OutlinedInput

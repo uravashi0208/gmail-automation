@@ -122,7 +122,6 @@ function RuleFormModal({ open, onClose, editRule, onSaved }) {
           {({ errors, handleBlur, handleChange, handleSubmit: formSubmit, touched, values, setFieldValue }) => (
             <form noValidate onSubmit={formSubmit}>
               <Grid container spacing={2.5}>
-
                 {/* Rule Name */}
                 <Grid size={12}>
                   <Stack gap={1}>
@@ -185,16 +184,13 @@ function RuleFormModal({ open, onClose, editRule, onSaved }) {
                       fullWidth
                       size="medium"
                     >
-                      <MenuItem value=""><em>None — keyword matching only</em></MenuItem>
+                      <MenuItem value="">
+                        <em>None — keyword matching only</em>
+                      </MenuItem>
                       {INTENT_OPTIONS.map((opt) => (
                         <MenuItem key={opt} value={opt}>
                           <Stack direction="row" alignItems="center" gap={1}>
-                            <Chip
-                              label={opt}
-                              size="small"
-                              color={intentColorMap[opt] || 'default'}
-                              sx={{ pointerEvents: 'none' }}
-                            />
+                            <Chip label={opt} size="small" color={intentColorMap[opt] || 'default'} sx={{ pointerEvents: 'none' }} />
                           </Stack>
                         </MenuItem>
                       ))}
@@ -253,7 +249,6 @@ function RuleFormModal({ open, onClose, editRule, onSaved }) {
                     </AnimateButton>
                   </Stack>
                 </Grid>
-
               </Grid>
             </form>
           )}
@@ -265,13 +260,15 @@ function RuleFormModal({ open, onClose, editRule, onSaved }) {
 
 // ── Main Table Component ──────────────────────────────────────────────────────
 export default function OrdersTable() {
-  const [rules, setRules]       = useState([]);
+  const [rules, setRules] = useState([]);
   const [editRule, setEditRule] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [search, setSearch]     = useState('');
-  const [page, setPage]         = useState(0);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
 
-  useEffect(() => { fetchRules(); }, []);
+  useEffect(() => {
+    fetchRules();
+  }, []);
 
   const fetchRules = async () => {
     try {
@@ -284,17 +281,35 @@ export default function OrdersTable() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this rule?')) return;
-    try { await deleteRule(id); await fetchRules(); } catch (err) { console.error(err); }
+    try {
+      await deleteRule(id);
+      await fetchRules();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleToggleActive = async (rule) => {
-    try { await updateRule(rule._id, { active: !rule.active }); await fetchRules(); }
-    catch (err) { console.error(err); }
+    try {
+      await updateRule(rule._id, { active: !rule.active });
+      await fetchRules();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const openCreate = () => { setEditRule(null); setModalOpen(true); };
-  const openEdit   = (rule) => { setEditRule(rule); setModalOpen(true); };
-  const closeModal = () => { setModalOpen(false); setEditRule(null); };
+  const openCreate = () => {
+    setEditRule(null);
+    setModalOpen(true);
+  };
+  const openEdit = (rule) => {
+    setEditRule(rule);
+    setModalOpen(true);
+  };
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditRule(null);
+  };
 
   const filteredRules = rules.filter((r) => {
     const s = search.toLowerCase();
@@ -306,37 +321,44 @@ export default function OrdersTable() {
     );
   });
 
-  const pageCount      = Math.ceil(filteredRules.length / ROWS_PER_PAGE);
+  const pageCount = Math.ceil(filteredRules.length / ROWS_PER_PAGE);
   const paginatedRules = filteredRules.slice(page * ROWS_PER_PAGE, page * ROWS_PER_PAGE + ROWS_PER_PAGE);
 
   return (
     <>
       {/* Modal */}
-      <RuleFormModal
-        open={modalOpen}
-        onClose={closeModal}
-        editRule={editRule}
-        onSaved={fetchRules}
-      />
+      <RuleFormModal open={modalOpen} onClose={closeModal} editRule={editRule} onSaved={fetchRules} />
 
       {/* Full-width table section */}
       <Grid size={12}>
         {/* Header row */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{
+            mb: 2,
+            px: 2,
+            py: 1.5,
+            borderRadius: 2,
+            backgroundColor: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)'
+          }}
+        >
           <Typography variant="h5">Automation Rules</Typography>
           <Stack direction="row" alignItems="center" gap={1.5}>
             <OutlinedInput
               sx={{ width: 260 }}
               placeholder="Search rules…"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
               size="small"
             />
-            <Button
-              variant="contained"
-              startIcon={<PlusOutlined />}
-              onClick={openCreate}
-            >
+            <Button variant="contained" startIcon={<PlusOutlined />} onClick={openCreate}>
               New Rule
             </Button>
           </Stack>
@@ -348,7 +370,9 @@ export default function OrdersTable() {
               <TableHead>
                 <TableRow>
                   {headCells.map((c) => (
-                    <TableCell key={c.id} align={c.align}>{c.label}</TableCell>
+                    <TableCell key={c.id} align={c.align}>
+                      {c.label}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -363,10 +387,13 @@ export default function OrdersTable() {
                   paginatedRules.map((r) => (
                     <TableRow key={r._id} hover>
                       <TableCell>
-                        <Typography variant="body2" fontWeight={600}>{r.name}</Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {r.name}
+                        </Typography>
                         {r.stats?.totalMatched > 0 && (
                           <Typography variant="caption" color="text.secondary">
-                            {r.stats.totalMatched} matches · {(r.stats.totalMatched * (r.stats.minutesPerMatch || 2) / 60).toFixed(1)}h saved
+                            {r.stats.totalMatched} matches · {((r.stats.totalMatched * (r.stats.minutesPerMatch || 2)) / 60).toFixed(1)}h
+                            saved
                           </Typography>
                         )}
                       </TableCell>
@@ -380,16 +407,14 @@ export default function OrdersTable() {
                             color={intentColorMap[r.conditions.intentTrigger] || 'default'}
                             size="small"
                           />
-                        ) : '—'}
+                        ) : (
+                          '—'
+                        )}
                       </TableCell>
                       <TableCell align="center">{r.actions?.label || '—'}</TableCell>
                       <TableCell align="center">
                         <Tooltip title={r.active ? 'Disable rule' : 'Enable rule'}>
-                          <Switch
-                            checked={Boolean(r.active)}
-                            size="small"
-                            onChange={() => handleToggleActive(r)}
-                          />
+                          <Switch checked={Boolean(r.active)} size="small" onChange={() => handleToggleActive(r)} />
                         </Tooltip>
                       </TableCell>
                       <TableCell align="center">
@@ -420,7 +445,8 @@ export default function OrdersTable() {
               sx={{ px: 2.5, py: 2, borderTop: '1px solid', borderColor: 'divider' }}
             >
               <Typography variant="caption" color="text.secondary">
-                Showing {page * ROWS_PER_PAGE + 1}–{Math.min((page + 1) * ROWS_PER_PAGE, filteredRules.length)} of {filteredRules.length} rules
+                Showing {page * ROWS_PER_PAGE + 1}–{Math.min((page + 1) * ROWS_PER_PAGE, filteredRules.length)} of {filteredRules.length}{' '}
+                rules
               </Typography>
               <Pagination
                 count={pageCount}

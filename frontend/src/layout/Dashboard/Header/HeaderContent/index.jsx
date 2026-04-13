@@ -1,5 +1,6 @@
 // material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
+import Box from '@mui/material/Box';
 // project imports
 import Search from './Search';
 import Profile from './Profile';
@@ -13,6 +14,7 @@ export default function HeaderContent() {
   return (
     <>
       {!downLG && <Search />}
+      <Box sx={{ flexGrow: 1 }} />
       {!downLG && <Profile />}
       {downLG && <MobileSection />}
     </>
