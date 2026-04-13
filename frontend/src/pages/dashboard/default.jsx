@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
+
+import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+
+import { ThunderboltOutlined, WarningOutlined } from '@ant-design/icons';
+
 import MainCard from 'components/MainCard';
 import OrdersTable from 'sections/dashboard/default/OrdersTable';
-import { getEnhancedStats, getHealthScores, getConflicts } from '../../api';
-import { ThunderboltOutlined, WarningOutlined, ClockCircleOutlined, MailOutlined } from '@ant-design/icons';
+import { getConflicts, getEnhancedStats, getHealthScores } from '../../api';
 
 function StatCard({ title, value, subtitle, icon, color = 'primary.main' }) {
   return (
@@ -17,29 +21,27 @@ function StatCard({ title, value, subtitle, icon, color = 'primary.main' }) {
           <Typography variant="h3" color={color} sx={{ mt: 0.5 }}>{value}</Typography>
           {subtitle && <Typography variant="caption" color="text.secondary">{subtitle}</Typography>}
         </Box>
-        <span style={{ fontSize: 28, opacity: 0.6 }}>{icon}</span>
+        <span style={{ fontSize: 28, opacity: 0.55 }}>{icon}</span>
       </Stack>
     </MainCard>
   );
 }
 
-import Box from '@mui/material/Box';
-
 export default function DashboardDefault() {
-  const [stats, setStats]         = useState(null);
-  const [health, setHealth]       = useState(null);
+  const [stats,     setStats]     = useState(null);
+  const [health,    setHealth]    = useState(null);
   const [conflicts, setConflicts] = useState([]);
 
   useEffect(() => {
-    getEnhancedStats().then(r => setStats(r.data)).catch(console.error);
-    getHealthScores().then(r => setHealth(r.data)).catch(console.error);
-    getConflicts().then(r => setConflicts(r.data.conflicts || [])).catch(console.error);
+    getEnhancedStats().then((r) => setStats(r.data)).catch(console.error);
+    getHealthScores().then((r)  => setHealth(r.data)).catch(console.error);
+    getConflicts().then((r)     => setConflicts(r.data.conflicts || [])).catch(console.error);
   }, []);
 
-  const successRate   = stats?.total ? Math.round((stats.success / stats.total) * 100) : 0;
-  const timeSaved     = health?.scores?.reduce((s, r) => s + r.timeSavedHours, 0).toFixed(1) || '0.0';
-  const unusedRules   = health?.scores?.filter(r => r.health === 'unused').length || 0;
-  const topIntent     = stats?.byIntent?.[0];
+  const successRate = stats?.total ? Math.round((stats.success / stats.total) * 100) : 0;
+  const timeSaved   = health?.scores?.reduce((s, r) => s + r.timeSavedHours, 0).toFixed(1) || '0.0';
+  const unusedRules = health?.scores?.filter((r) => r.health === 'unused').length || 0;
+  const topIntent   = stats?.byIntent?.[0];
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
@@ -47,7 +49,7 @@ export default function DashboardDefault() {
         <Typography variant="h5">Dashboard</Typography>
       </Grid>
 
-      {/* Stats row */}
+      {/* Stat cards */}
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <StatCard
           title="Emails Processed"
@@ -84,26 +86,26 @@ export default function DashboardDefault() {
         />
       </Grid>
 
-      {/* Top intent banner */}
-      {topIntent && (
+      {/* Intent + conflict alert banner */}
+      {(topIntent || conflicts.length > 0) && (
         <Grid size={12}>
           <MainCard>
             <Stack direction="row" alignItems="center" gap={2} flexWrap="wrap">
-              <ThunderboltOutlined style={{ fontSize: 20, color: '#fa8c16' }} />
-              <Typography variant="subtitle1">
-                Most common email intent today:
-              </Typography>
-              <Chip label={topIntent._id} color="warning" />
-              <Typography variant="body2" color="text.secondary">
-                ({topIntent.count} emails)
-              </Typography>
+              {topIntent && (
+                <>
+                  <ThunderboltOutlined style={{ fontSize: 18, color: '#fa8c16' }} />
+                  <Typography variant="subtitle2">Top intent today:</Typography>
+                  <Chip label={topIntent._id} color="warning" size="small" />
+                  <Typography variant="body2" color="text.secondary">({topIntent.count} emails)</Typography>
+                </>
+              )}
               {conflicts.length > 0 && (
                 <>
                   <Box sx={{ flex: 1 }} />
                   <Stack direction="row" alignItems="center" gap={1}>
-                    <WarningOutlined style={{ color: '#ff4d4f' }} />
+                    <WarningOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
                     <Typography variant="body2" color="error.main">
-                      {conflicts.length} rule conflict{conflicts.length > 1 ? 's' : ''} detected — check Conflicts page
+                      {conflicts.length} rule conflict{conflicts.length > 1 ? 's' : ''} — check Conflicts page
                     </Typography>
                   </Stack>
                 </>
@@ -113,7 +115,7 @@ export default function DashboardDefault() {
         </Grid>
       )}
 
-      {/* Rules table */}
+      {/* Rules table — full width */}
       <OrdersTable />
     </Grid>
   );
