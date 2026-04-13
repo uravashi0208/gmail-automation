@@ -165,27 +165,43 @@ async function applyRuleToMessage(user, rule, message, intent) {
 // ── Main per-user processor ─────────────────────────────────────────────────
 
 async function processForUser(user) {
-  if (!user?.tokensEncrypted) return;
-  const rules    = await Rule.find({ userId: user._id, active: true });
-  const messages = await gmailService.listUnreadMessages(user);
+  if (!user?.tokensEncrypted) {
+    console.log(`Skipping user ${user?.email} — no tokens. Re-login required.`);
+    return;
+  }
 
-  for (const m of messages) {
-    const full    = await gmailService.getMessage(user, m.id);
-    const subject = getHeader(full, 'Subject');
-    const from    = getHeader(full, 'From');
-    const hour    = new Date().getHours();
+  try {
+    const rules    = await Rule.find({ userId: user._id, active: true });
+    const messages = await gmailService.listUnreadMessages(user);
+    console.log(`Processing ${messages.length} unread emails for ${user.email}`);
 
-    // update conversation memory
-    await updateRelationship(user._id, from, subject, hour);
+    for (const m of messages) {
+      const full    = await gmailService.getMessage(user, m.id);
+      const subject = getHeader(full, 'Subject');
+      const from    = getHeader(full, 'From');
+      const hour    = new Date().getHours();
 
-    // detect intent (AI)
-    const intent = await detectIntent(subject, extractSnippet(full));
+      await updateRelationship(user._id, from, subject, hour);
+      const intent = await detectIntent(subject, extractSnippet(full));
 
-    // apply matching rules
-    for (const rule of rules) {
-      if (matchesConditions(full, rule.conditions, intent)) {
-        await applyRuleToMessage(user, rule, full, intent);
+      for (const rule of rules) {
+        if (matchesConditions(full, rule.conditions, intent)) {
+          await applyRuleToMessage(user, rule, full, intent);
+        }
       }
+    }
+  } catch (err) {
+    // Per-user error — don't crash entire scheduler
+    if (err.message?.includes('insufficient') || err.message?.includes('Insufficient') || err.code === 403) {
+      console.error(`[PERMISSION ERROR] User ${user.email} needs to re-login with Gmail permissions.`);
+      // Disable user temporarily to stop repeated 403 errors
+      await User.updateOne({ _id: user._id }, { 'settings.enabled': false });
+      console.log(`User ${user.email} disabled — please re-login at the app.`);
+    } else if (err.message?.includes('insufficient Gmail permissions')) {
+      console.error(`[SCOPE ERROR] ${err.message}`);
+      await User.updateOne({ _id: user._id }, { 'settings.enabled': false });
+    } else {
+      console.error(`Error processing user ${user.email}:`, err.message);
     }
   }
 }
@@ -194,12 +210,14 @@ async function processForUser(user) {
 
 function startScheduler() {
   const schedule = process.env.CRON_SCHEDULE || '*/1 * * * *';
+  console.log(`Scheduler starting with schedule: ${schedule}`);
   cron.schedule(schedule, async () => {
     try {
       const users = await User.find({ 'settings.enabled': true });
+      console.log(`Scheduler tick — processing ${users.length} active user(s)`);
       for (const u of users) await processForUser(u);
     } catch (err) {
-      console.error('Scheduler error:', err);
+      console.error('Scheduler error:', err.message);
     }
   }, { timezone: process.env.TZ || 'Europe/Warsaw' });
 }

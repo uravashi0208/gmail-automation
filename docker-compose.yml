@@ -18,8 +18,8 @@ services:
       - JWT_SECRET=changeme
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - OAUTH_REDIRECT_URI=https://gmail-automation-backend-nvxi.onrender.com/api/auth/google/callback
-      - FRONTEND_URL=https://gmail-automation-frontend.onrender.com
+      - OAUTH_REDIRECT_URI=https://gmail-automation-backend-2epx.onrender.com/api/auth/google/callback
+      - FRONTEND_URL=https://gmail-automation-silk.vercel.app
       - ENCRYPTION_KEY=01234567890123456789012345678901
       - CRON_SCHEDULE=*/1 * * * *
     ports:
