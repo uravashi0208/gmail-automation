@@ -3,6 +3,8 @@ import { RouterProvider } from 'react-router-dom';
 import router from 'routes';
 import ThemeCustomization from 'themes';
 import ScrollTop from 'components/ScrollTop';
+import ThemeCustomizerPanel from 'components/ThemeCustomizerPanel';
+import AppBackground from 'components/AppBackground';
 
 // ==============================|| APP - THEME, ROUTER, LOCAL ||============================== //
 
@@ -23,9 +25,12 @@ import ScrollTop from 'components/ScrollTop';
 export default function App() {
   return (
     <ThemeCustomization>
-      <ScrollTop>
-        <RouterProvider router={router} />
-      </ScrollTop>
+      <AppBackground>
+        <ScrollTop>
+          <RouterProvider router={router} />
+        </ScrollTop>
+        <ThemeCustomizerPanel />
+      </AppBackground>
     </ThemeCustomization>
   );
 }
