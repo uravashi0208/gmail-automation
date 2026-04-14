@@ -7,6 +7,7 @@ const User              = require('../models/User');
 const Rule              = require('../models/Rule');
 const EmailLog          = require('../models/EmailLog');
 const EmailRelationship = require('../models/EmailRelationship');
+const ProcessedMessage  = require('../models/ProcessedMessage');
 const gmailService      = require('./gmailService');
 const { detectIntent }  = require('./intentService');
 
@@ -46,7 +47,6 @@ async function updateRelationship(userId, senderRaw, subject, receivedHour) {
   const senderEmail = extractEmailAddress(senderRaw);
   const senderName  = senderRaw.replace(/<[^>]+>/, '').trim().replace(/"/g, '') || senderEmail;
 
-  // extract topic keywords from subject (simple: words > 4 chars)
   const topicWords = (subject || '')
     .split(/\s+/)
     .map(w => w.toLowerCase().replace(/[^a-z]/g, ''))
@@ -66,13 +66,11 @@ async function updateRelationship(userId, senderRaw, subject, receivedHour) {
     { upsert: true, new: true }
   );
 
-  // update VIP flag and best send hour
   const rel = await EmailRelationship.findOne({ userId, senderEmail });
   if (rel) {
     const isVip = rel.totalEmails >= 10;
     let bestSendHour = null;
     if (rel.receivedHours.length >= 5) {
-      // find most frequent hour
       const freq = {};
       rel.receivedHours.forEach(h => { freq[h] = (freq[h] || 0) + 1; });
       bestSendHour = parseInt(Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0]);
@@ -129,7 +127,6 @@ async function applyRuleToMessage(user, rule, message, intent) {
       await gmailService.sendReply(user, message, `Forwarded to: ${rule.actions.forwardTo}`);
     }
 
-    // update rule health stats
     await Rule.updateOne(
       { _id: rule._id },
       { $inc: { 'stats.totalMatched': 1 }, $set: { 'stats.lastMatchedAt': new Date() } }
@@ -175,7 +172,17 @@ async function processForUser(user) {
     const messages = await gmailService.listUnreadMessages(user);
     console.log(`Processing ${messages.length} unread emails for ${user.email}`);
 
+    let newCount = 0;
     for (const m of messages) {
+      // ── Deduplication: skip already-processed messages ──────────────────
+      try {
+        await ProcessedMessage.create({ userId: user._id, messageId: m.id });
+      } catch (dupErr) {
+        if (dupErr.code === 11000) continue; // duplicate key — already processed
+        throw dupErr;
+      }
+      newCount++;
+
       const full    = await gmailService.getMessage(user, m.id);
       const subject = getHeader(full, 'Subject');
       const from    = getHeader(full, 'From');
@@ -190,11 +197,10 @@ async function processForUser(user) {
         }
       }
     }
+    console.log(`Done for ${user.email}: ${newCount} new emails processed (${messages.length - newCount} skipped as duplicates)`);
   } catch (err) {
-    // Per-user error — don't crash entire scheduler
     if (err.message?.includes('insufficient') || err.message?.includes('Insufficient') || err.code === 403) {
       console.error(`[PERMISSION ERROR] User ${user.email} needs to re-login with Gmail permissions.`);
-      // Disable user temporarily to stop repeated 403 errors
       await User.updateOne({ _id: user._id }, { 'settings.enabled': false });
       console.log(`User ${user.email} disabled — please re-login at the app.`);
     } else if (err.message?.includes('insufficient Gmail permissions')) {

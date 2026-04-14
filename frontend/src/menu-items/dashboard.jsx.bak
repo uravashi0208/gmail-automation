@@ -5,8 +5,7 @@ import {
   WarningOutlined,
   TeamOutlined,
   BulbOutlined,
-  BarChartOutlined,
-  RobotOutlined
+  BarChartOutlined
 } from '@ant-design/icons';
 
 const dashboard = {
@@ -38,14 +37,6 @@ export const intelligenceMenu = {
   title: 'Intelligence',
   type: 'group',
   children: [
-    {
-      id: 'ai-command',
-      title: 'AI Command Center',
-      type: 'item',
-      url: '/intelligence/ai-command',
-      icon: RobotOutlined,
-      breadcrumbs: false
-    },
     {
       id: 'health',
       title: 'Health Score',

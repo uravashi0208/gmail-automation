@@ -10,6 +10,7 @@ const Conflicts        = Loadable(lazy(() => import('pages/intelligence/Conflict
 const Relationships    = Loadable(lazy(() => import('pages/intelligence/Relationships')));
 const Suggestions      = Loadable(lazy(() => import('pages/intelligence/Suggestions')));
 const IntentStats      = Loadable(lazy(() => import('pages/intelligence/IntentStats')));
+const AICommandCenter  = Loadable(lazy(() => import('pages/intelligence/AICommandCenter')));
 
 const MainRoutes = {
   path: '/',
@@ -19,14 +20,15 @@ const MainRoutes = {
     </ProtectedRoute>
   ),
   children: [
-    { path: '/',                          element: <DashboardDefault /> },
-    { path: 'dashboard',                  element: <DashboardDefault /> },
-    { path: 'maillogs',                   element: <LogsDefault /> },
-    { path: 'intelligence/health',        element: <HealthScore /> },
-    { path: 'intelligence/conflicts',     element: <Conflicts /> },
-    { path: 'intelligence/relationships', element: <Relationships /> },
-    { path: 'intelligence/suggestions',   element: <Suggestions /> },
-    { path: 'intelligence/intent',        element: <IntentStats /> }
+    { path: '/',                            element: <DashboardDefault />  },
+    { path: 'dashboard',                    element: <DashboardDefault />  },
+    { path: 'maillogs',                     element: <LogsDefault />       },
+    { path: 'intelligence/health',          element: <HealthScore />        },
+    { path: 'intelligence/conflicts',       element: <Conflicts />          },
+    { path: 'intelligence/relationships',   element: <Relationships />      },
+    { path: 'intelligence/suggestions',     element: <Suggestions />        },
+    { path: 'intelligence/intent',          element: <IntentStats />        },
+    { path: 'intelligence/ai-command',      element: <AICommandCenter />    }
   ]
 };
 

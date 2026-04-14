@@ -30,3 +30,19 @@ export const getConflicts       = () => API.get('/analytics/conflicts');
 export const getRelationships   = () => API.get('/analytics/relationships');
 export const getSuggestedRules  = () => API.get('/analytics/suggestions');
 export const getEnhancedStats   = () => API.get('/analytics/stats');
+
+// AI Command Center
+export const getPriorityScores    = ()             => API.get('/ai/priority');
+export const getDailyDigest       = ()             => API.get('/ai/digest');
+export const getOptimizationTips  = ()             => API.get('/ai/optimize');
+export const getBulkLabelPreview  = (intent, label) => API.get('/ai/bulk-preview', { params: { intent, label } });
+export const getSenderIntelligence = (email)       => API.get(`/ai/sender/${encodeURIComponent(email)}`);
+export const getLiveStats         = ()             => API.get('/ai/live');
+
+// Rule bulk operations
+export const bulkSetActive   = (ids, active) => API.post('/rules/bulk/active', { ids, active });
+export const bulkDeleteRules = (ids)         => API.post('/rules/bulk/delete', { ids });
+export const duplicateRule   = (id)          => API.post(`/rules/${id}/duplicate`);
+
+// Manual trigger
+export const runNow = () => API.post('/ai/run-now');

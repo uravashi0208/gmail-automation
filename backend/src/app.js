@@ -8,6 +8,7 @@ const authRoutes      = require('./routes/auth');
 const rulesRoutes     = require('./routes/rules');
 const dashboardRoutes = require('./routes/dashboard');
 const analyticsRoutes = require('./routes/analytics');
+const aiRoutes        = require('./routes/ai');
 
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:5173')
   .split(',')
@@ -23,6 +24,7 @@ app.use('/api/auth',      authRoutes);
 app.use('/api/rules',     rulesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/ai',        aiRoutes);
 
 app.get('/', (_req, res) => res.json({ status: 'ok' }));
 
