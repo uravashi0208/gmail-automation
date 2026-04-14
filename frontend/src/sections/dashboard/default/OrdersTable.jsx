@@ -26,7 +26,7 @@ import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import { CloseOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { CloseOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 
@@ -260,22 +260,24 @@ function RuleFormModal({ open, onClose, editRule, onSaved }) {
 
 // ── Main Table Component ──────────────────────────────────────────────────────
 export default function OrdersTable() {
-  const [rules, setRules] = useState([]);
-  const [editRule, setEditRule] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
+  const [rules, setRules]           = useState([]);
+  const [editRule, setEditRule]     = useState(null);
+  const [modalOpen, setModalOpen]   = useState(false);
+  const [search, setSearch]         = useState('');
+  const [page, setPage]             = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchRules();
-  }, []);
+  useEffect(() => { fetchRules(); }, []);
 
   const fetchRules = async () => {
+    setRefreshing(true);
     try {
       const res = await listRules();
       setRules(res.data || []);
     } catch (err) {
       console.error('Failed to fetch rules:', err);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -358,6 +360,18 @@ export default function OrdersTable() {
               }}
               size="small"
             />
+            <Tooltip title="Refresh rules">
+              <IconButton
+                onClick={fetchRules}
+                size="small"
+                sx={{
+                  border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 0.8,
+                  '&:hover': { bgcolor: 'action.hover' }
+                }}
+              >
+                <ReloadOutlined style={{ fontSize: 16, transition: 'transform 0.6s ease', transform: refreshing ? 'rotate(360deg)' : 'rotate(0deg)' }} />
+              </IconButton>
+            </Tooltip>
             <Button variant="contained" startIcon={<PlusOutlined />} onClick={openCreate}>
               New Rule
             </Button>

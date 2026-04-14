@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Alert from '@mui/material/Alert';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -11,20 +13,30 @@ import Typography from '@mui/material/Typography';
 import MainCard from 'components/MainCard';
 import AnimateButton from 'components/@extended/AnimateButton';
 import { getSuggestedRules, createRule } from '../../api';
-import { BulbOutlined, PlusOutlined, CheckOutlined } from '@ant-design/icons';
+import { BulbOutlined, CheckOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 
 export default function Suggestions() {
   const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [applied, setApplied] = useState({});
-  const [error, setError] = useState('');
+  const [loading, setLoading]         = useState(true);
+  const [refreshing, setRefreshing]   = useState(false);
+  const [applied, setApplied]         = useState({});
+  const [error, setError]             = useState('');
 
-  useEffect(() => {
-    getSuggestedRules()
-      .then((r) => setSuggestions(r.data.suggestions || []))
-      .catch(() => setError('Could not fetch suggestions. Make sure ANTHROPIC_API_KEY is set on the backend.'))
-      .finally(() => setLoading(false));
+  const fetchSuggestions = useCallback(async (isInitial = false) => {
+    if (isInitial) setLoading(true); else setRefreshing(true);
+    setError('');
+    try {
+      const r = await getSuggestedRules();
+      setSuggestions(r.data.suggestions || []);
+    } catch {
+      setError('Could not fetch suggestions. Make sure ANTHROPIC_API_KEY is set on the backend.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => { fetchSuggestions(true); }, [fetchSuggestions]);
 
   const applyRule = async (s, idx) => {
     try {
@@ -59,9 +71,25 @@ export default function Suggestions() {
             Behavioral Pattern Rule Suggester
           </Typography>
         </Stack>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          AI analyzes your past email patterns and suggests rules you never thought to create.
-        </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
+          <Typography variant="body2" color="text.secondary">
+            AI analyzes your past email patterns and suggests rules you never thought to create.
+          </Typography>
+          <Tooltip title="Re-analyze patterns">
+            <IconButton
+              onClick={() => fetchSuggestions(false)}
+              size="small"
+              disabled={refreshing}
+              sx={{
+                border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 0.8,
+                bgcolor: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)',
+                '&:hover': { bgcolor: 'action.hover' }
+              }}
+            >
+              <ReloadOutlined style={{ fontSize: 16, transition: 'transform 0.6s ease', transform: refreshing ? 'rotate(360deg)' : 'rotate(0deg)' }} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </Grid>
 
       {loading && (

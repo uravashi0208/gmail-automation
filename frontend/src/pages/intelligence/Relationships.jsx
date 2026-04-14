@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -10,23 +12,15 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import OutlinedInput from '@mui/material/OutlinedInput';
+import { ReloadOutlined, StarFilled, ClockCircleOutlined } from '@ant-design/icons';
 import MainCard from 'components/MainCard';
 import { getRelationships } from '../../api';
-import { StarFilled, ClockCircleOutlined } from '@ant-design/icons';
 
 function initials(name = '') {
-  return (
-    name
-      .split(' ')
-      .map((w) => w[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2) || '?'
-  );
+  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
-
 function avatarColor(email = '') {
   const colors = ['#1677ff', '#52c41a', '#fa8c16', '#eb2f96', '#722ed1', '#13c2c2'];
   const i = email.split('').reduce((s, c) => s + c.charCodeAt(0), 0) % colors.length;
@@ -34,76 +28,92 @@ function avatarColor(email = '') {
 }
 
 export default function Relationships() {
-  const [rels, setRels] = useState([]);
-  const [search, setSearch] = useState('');
+  const [rels, setRels]             = useState([]);
+  const [search, setSearch]         = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    getRelationships()
-      .then((r) => setRels(r.data || []))
-      .catch(console.error);
+  const fetchData = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const r = await getRelationships();
+      setRels(r.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const filtered = rels.filter(
     (r) => r.senderEmail.includes(search.toLowerCase()) || (r.senderName || '').toLowerCase().includes(search.toLowerCase())
   );
-
-  const vips = filtered.filter((r) => r.isVip);
+  const vips    = filtered.filter((r) => r.isVip);
   const nonVips = filtered.filter((r) => !r.isVip);
 
   return (
     <Grid container rowSpacing={3} columnSpacing={2.75}>
       <Grid size={12}>
-        <Typography
-          variant="h5"
-          sx={{
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            display: 'inline-block',
-            backgroundColor: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)'
-          }}
-        >
-          Conversation Memory Engine
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Per-sender relationship graph — email history, topics, best reply time.
-        </Typography>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+          <Box>
+            <Typography
+              variant="h5"
+              sx={{
+                px: 2, py: 1, borderRadius: 2, display: 'inline-block',
+                backgroundColor: 'rgba(255,255,255,0.75)',
+                backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)'
+              }}
+            >
+              Conversation Memory Engine
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              Per-sender relationship graph — email history, topics, best reply time.
+            </Typography>
+          </Box>
+          <Tooltip title="Refresh relationships">
+            <IconButton
+              onClick={fetchData}
+              size="small"
+              sx={{
+                border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 0.8,
+                bgcolor: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)',
+                '&:hover': { bgcolor: 'action.hover' }
+              }}
+            >
+              <ReloadOutlined style={{ fontSize: 16, transition: 'transform 0.6s ease', transform: refreshing ? 'rotate(360deg)' : 'rotate(0deg)' }} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </Grid>
 
       <Grid size={{ xs: 12, sm: 4 }}>
         <MainCard>
-          <Typography variant="subtitle2" color="text.secondary">
-            Total Senders Tracked
-          </Typography>
+          <Typography variant="subtitle2" color="text.secondary">Total Senders Tracked</Typography>
           <Typography variant="h3">{rels.length}</Typography>
         </MainCard>
       </Grid>
       <Grid size={{ xs: 12, sm: 4 }}>
         <MainCard>
-          <Typography variant="subtitle2" color="text.secondary">
-            VIP Contacts
-          </Typography>
-          <Typography variant="h3" color="warning.main">
-            {rels.filter((r) => r.isVip).length}
-          </Typography>
+          <Typography variant="subtitle2" color="text.secondary">VIP Contacts</Typography>
+          <Typography variant="h3" color="warning.main">{rels.filter((r) => r.isVip).length}</Typography>
         </MainCard>
       </Grid>
       <Grid size={{ xs: 12, sm: 4 }}>
         <MainCard>
-          <Typography variant="subtitle2" color="text.secondary">
-            With Send-Time Data
-          </Typography>
-          <Typography variant="h3" color="primary.main">
-            {rels.filter((r) => r.bestSendHour !== null).length}
-          </Typography>
+          <Typography variant="subtitle2" color="text.secondary">With Send-Time Data</Typography>
+          <Typography variant="h3" color="primary.main">{rels.filter((r) => r.bestSendHour !== null).length}</Typography>
         </MainCard>
       </Grid>
 
       <Grid size={12}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-          <OutlinedInput placeholder="Search sender…" value={search} onChange={(e) => setSearch(e.target.value)} sx={{ width: 280 }} />
+          <OutlinedInput
+            placeholder="Search sender…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ width: 280 }}
+          />
         </Box>
         <MainCard content={false}>
           <TableContainer>
@@ -124,12 +134,8 @@ export default function Relationships() {
                           {initials(r.senderName || r.senderEmail)}
                         </Avatar>
                         <Box>
-                          <Typography variant="body2" fontWeight={600}>
-                            {r.senderName || r.senderEmail}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {r.senderEmail}
-                          </Typography>
+                          <Typography variant="body2" fontWeight={600}>{r.senderName || r.senderEmail}</Typography>
+                          <Typography variant="caption" color="text.secondary">{r.senderEmail}</Typography>
                         </Box>
                       </Stack>
                     </TableCell>
@@ -142,30 +148,21 @@ export default function Relationships() {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      {r.bestSendHour !== null ? (
-                        <Stack direction="row" alignItems="center" gap={0.5}>
-                          <ClockCircleOutlined style={{ color: '#1677ff' }} />
-                          <Typography variant="body2">{r.bestSendHour}:00</Typography>
-                        </Stack>
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">
-                          Not enough data
-                        </Typography>
-                      )}
+                      {r.bestSendHour !== null
+                        ? <Stack direction="row" alignItems="center" gap={0.5}><ClockCircleOutlined style={{ color: '#1677ff' }} /><Typography variant="body2">{r.bestSendHour}:00</Typography></Stack>
+                        : <Typography variant="caption" color="text.secondary">Not enough data</Typography>}
                     </TableCell>
                     <TableCell>
-                      {r.isVip ? (
-                        <Chip icon={<StarFilled />} label="VIP" color="warning" size="small" />
-                      ) : (
-                        <Chip label="Regular" size="small" variant="outlined" />
-                      )}
+                      {r.isVip
+                        ? <Chip icon={<StarFilled />} label="VIP" color="warning" size="small" />
+                        : <Chip label="Regular" size="small" variant="outlined" />}
                     </TableCell>
                   </TableRow>
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} align="center">
-                      No relationships tracked yet. Process some emails first.
+                      {refreshing ? 'Loading…' : 'No relationships tracked yet. Process some emails first.'}
                     </TableCell>
                   </TableRow>
                 )}
